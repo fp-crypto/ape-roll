@@ -1,20 +1,37 @@
 [tool.poetry]
-name = "weiroll-py"
-version = "0.2.1"
-description = "Build weiroll transactions with brownie"
-authors = ["FP <FP@no-email.com>"]
+name = "ape-roll"
+version = "0.0.1"
+description = "Build weiroll transactions with ape"
+authors = ["FP <fp@noemail.com>"]
 license = "MIT"
-repository = "https://github.com/fp-crypto/weiroll-py"
 packages = [
-    { include = "./weiroll.py" },
+    { include = "ape_roll" },
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.9,<3.11"
-eth-brownie = "^v1.17"
+python = ">=3.8,<3.12"
+eth-ape = "^0.6.18"
 
 [tool.poetry.dev-dependencies]
+pytest = ">=6.0"
+pytest-xdist = "^3.3.1"
+pytest-cov = "^4.1.0"
+hypothesis = ">=6.2.0,<7.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+# NOTE: can't use xdist
+addopts = """
+    -n 0
+    --cov-branch
+    --cov-report term
+    --cov-report html
+    --cov-report xml
+    --cov=ape_roll
+"""
+python_files = "test_*.py"
+testpaths = "tests"
+markers = "fuzzing: Run Hypothesis fuzz test suite"

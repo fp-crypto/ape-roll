@@ -1,5 +1,5 @@
-from brownie import Contract, accounts, Wei, chain, TestableVM
-from weiroll import WeirollContract, WeirollPlanner, ReturnValue
+from ape import Contract, accounts, convert
+from ape_roll.client import WeirollContract, WeirollPlanner, ReturnValue
 import requests
 
 
@@ -15,7 +15,7 @@ def test_chaining_action(weiroll_vm, tuple_helper):
     assert weth.balanceOf(weiroll_vm.address) == 0
     assert yfi.balanceOf(weiroll_vm.address) == 0
     assert crv_yfi_weth.balanceOf(weiroll_vm.address) == 0
-    weth.transfer(weiroll_vm.address, Wei("10 ether"), {"from": whale})
+    weth.transfer(weiroll_vm.address, convert("10 ether", int), {"from": whale})
 
     # Planner and all weiroll contracts
     planner = WeirollPlanner(weiroll_vm)
@@ -34,7 +34,7 @@ def test_chaining_action(weiroll_vm, tuple_helper):
         params={
             "fromTokenAddress": weth.address,
             "toTokenAddress": yfi.address,
-            "amount": Wei("5 ether"),
+            "amount": convert("5 ether", int),
             "fromAddress": weiroll_vm.address,
             "slippage": 5,
             "disableEstimate": "true",
@@ -64,7 +64,7 @@ def test_chaining_action(weiroll_vm, tuple_helper):
     planner.add(w_yfi.approve(w_curve_swap.address, 2**256-1))
 
     curve_ret = planner.add(
-        w_curve_swap.add_liquidity([Wei("5 ether"), yfi_int_amount], 0)
+        w_curve_swap.add_liquidity([convert("5 ether", int), yfi_int_amount], 0)
     )
 
     planner.add(w_crv_yfi_weth.transfer(w_tuple_helper.address, curve_ret))

@@ -4,11 +4,10 @@ from enum import IntEnum, IntFlag
 from functools import cache
 from typing import Optional
 
-import brownie
+import ape
+from ape.contracts.base import ContractInstance as ApeContractInstance
 import eth_abi
 import eth_abi.packed
-from brownie.convert.utils import get_type_strings
-from brownie.network.contract import OverloadedMethod
 from hexbytes import HexBytes
 
 MAX_UINT256 = 2**256-1
@@ -76,10 +75,10 @@ def simple_args(simple_sizes, args):
 
 # TODO: not sure about this class. its mostly here because this is how the javascript sdk works. now that this works, i think we can start refactoring to use brownie more directly
 class FunctionFragment:
-    def __init__(self, brownieContract: brownie.Contract, selector):
-        function_name = brownieContract.selectors[selector]
+    def __init__(self, ape_contract: ApeContractInstance, selector):
+        function_name = ape_contract.selectors[selector]
 
-        function = getattr(brownieContract, function_name)
+        function = getattr(ape_contract, function_name)
 
         if isinstance(function, OverloadedMethod):
             overloaded_func = None
@@ -253,9 +252,9 @@ class WeirollContract:
     * [[Planner.addSubplan]], or [[Planner.replaceState]] to add to the sequence of calls to plan.
     """
 
-    def __init__(self, brownieContract: brownie.Contract, commandFlags: CommandFlags = 0):
-        self.brownieContract = brownieContract
-        self.address = brownieContract.address
+    def __init__(self, ape_contract: ApeContractInstance, commandFlags: CommandFlags = 0):
+        self.ape_contract = ape_contract
+        self.address = ape_contract.address
 
         self.commandFlags = commandFlags
         self.functions = {}  # aka functionsBySelector
@@ -264,8 +263,8 @@ class WeirollContract:
 
         selectorsByName = defaultdict(list)
 
-        for selector, name in self.brownieContract.selectors.items():
-            fragment = FunctionFragment(self.brownieContract, selector)
+        for selector, name in self.ape_contract.selectors.items():
+            fragment = FunctionFragment(self.ape_contract, selector)
 
             # Check that the signature is unique; if not the ABI generation has
             # not been cleaned or may be incorrectly generated
@@ -303,7 +302,7 @@ class WeirollContract:
                 # define a new function which will use brownie' get_fn_from_args
                 # to decide which plan_fn to route to
                 def _overload(*args, fn_name=name):
-                    overload_method = self.brownieContract.__getattribute__(fn_name)
+                    overload_method = self.ape_contract.__getattribute__(fn_name)
                     method = overload_method._get_fn_from_args(args)
                     signature = method.signature
                     plan_fn = self.functions[signature]
@@ -326,7 +325,7 @@ class WeirollContract:
     @cache
     def createContract(
         cls,
-        contract: brownie.Contract,
+        contract: ApeContractInstance,
         commandflags=CommandFlags.CALL,
     ):
         """
@@ -347,7 +346,7 @@ class WeirollContract:
     @cache
     def createLibrary(
         cls,
-        contract: brownie.Contract,
+        contract: ApeContractInstance,
     ):
         """
         * Creates a [[Contract]] object from an ethers.js contract.
@@ -413,7 +412,7 @@ class WeirollPlanner:
 
         self.clone = clone
 
-    def approve(self, token: brownie.Contract, spender: str, wei_needed, approve_wei=None) -> Optional[ReturnValue]:
+    def approve(self, token: ApeContractInstance, spender: str, wei_needed, approve_wei=None) -> Optional[ReturnValue]:
         key = (token, self.clone, spender)
 
         if approve_wei is None:
@@ -432,14 +431,14 @@ class WeirollPlanner:
 
         return self.call(token, "approve", spender, approve_wei)
 
-    def call(self, brownieContract: brownie.Contract, func_name, *args):
+    def call(self, ape_contract: ApeContractInstance, func_name, *args):
         """func_name can be just the name, or it can be the full signature.
 
         If there are multiple functions with the same name, you must use the signature.
 
         TODO: brownie has some logic for figuring out which overloaded method to use. we should use that here
         """
-        weirollContract = WeirollContract.createContract(brownieContract)
+        weirollContract = WeirollContract.createContract(ape_contract)
 
         if func_name.endswith(")"):
             # TODO: would be interesting to look at args and do this automatically
@@ -449,8 +448,8 @@ class WeirollPlanner:
 
         return self.add(func(*args))
 
-    def delegatecall(self, brownieContract: brownie.Contract, func_name, *args):
-        contract = WeirollContract.createLibrary(brownieContract)
+    def delegatecall(self, ape_contract: ApeContractInstance, func_name, *args):
+        contract = WeirollContract.createLibrary(ape_contract)
 
         if func_name in contract.functionsByUniqueName:
             func = contract.functionsByUniqueName[func_name]
@@ -460,7 +459,7 @@ class WeirollPlanner:
             # print("func_name:", func_name)
             # print("functionsByUniqueName:", contract.functionsByUniqueName)
             # print("functionsBySignature:", contract.functionsBySignature)
-            raise ValueError(f"Unknown func_name ({func_name}) on {brownieContract}")
+            raise ValueError(f"Unknown func_name ({func_name}) on {ape_contract}")
 
         return self.add(func(*args))
 
@@ -498,7 +497,7 @@ class WeirollPlanner:
 
         return ReturnValue(call.fragment.outputs[0], command)
 
-    def subcall(self, brownieContract: brownie.Contract, func_name, *args):
+    def subcall(self, ape_contract: ApeContractInstance, func_name, *args):
         """
         * Adds a call to a subplan. This has the effect of instantiating a nested instance of the weiroll
         * interpreter, and is commonly used for functionality such as flashloans, control flow, or anywhere
@@ -529,13 +528,13 @@ class WeirollPlanner:
         * ```
         * @param call The [[FunctionCall]] to add to the planner.
         """
-        contract = WeirollContract.createContract(brownieContract)
+        contract = WeirollContract.createContract(ape_contract)
         func = getattr(contract, func_name)
         func_call = func(*args)
         return self.addSubplan(func_call)
 
-    def subdelegatecall(self, brownieContract: brownie.Contract, func_name, *args):
-        contract = WeirollContract.createLibrary(brownieContract)
+    def subdelegatecall(self, ape_contract: ApeContractInstance, func_name, *args):
+        contract = WeirollContract.createLibrary(ape_contract)
         func = getattr(contract, func_name)
         func_call = func(*args)
         return self.addSubplan(func_call)

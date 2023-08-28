@@ -1,5 +1,5 @@
-from brownie import Contract, accounts, Wei, chain, TestableVM
-from weiroll import WeirollContract, WeirollPlanner
+from ape import Contract, accounts, convert
+from ape_roll.client import WeirollContract, WeirollPlanner
 
 
 def test_curve_add_liquidity(weiroll_vm):
@@ -11,10 +11,10 @@ def test_curve_add_liquidity(weiroll_vm):
     # regular way
     assert three_crv.balanceOf(whale) == 0
     dai.approve(curve_pool.address, 2 ** 256 - 1, {"from": whale})
-    curve_pool.add_liquidity([Wei("10 ether"), 0, 0], 0, {"from": whale})
+    curve_pool.add_liquidity([convert("10 ether", int), 0, 0], 0, {"from": whale})
     assert three_crv.balanceOf(whale) > 0
 
-    dai.transfer(weiroll_vm.address, Wei("10 ether"), {"from": whale})
+    dai.transfer(weiroll_vm.address, convert("10 ether", int), {"from": whale})
 
     # Weiroll version
     planner = WeirollPlanner(weiroll_vm)
@@ -40,7 +40,7 @@ def test_curve_add_liquidity_with_call(weiroll_vm):
     curve_pool = Contract("0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7")
     three_crv = Contract("0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490")
 
-    dai.transfer(weiroll_vm.address, Wei("10 ether"), {"from": whale})
+    dai.transfer(weiroll_vm.address, convert("10 ether", int), {"from": whale})
 
     planner = WeirollPlanner(weiroll_vm)
     w_dai = WeirollContract.createContract(dai)

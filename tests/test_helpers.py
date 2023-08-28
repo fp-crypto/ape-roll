@@ -1,7 +1,8 @@
-from brownie.convert import to_bytes
 from hexbytes import HexBytes
 import random
-from brownie import reverts
+from ape import reverts, convert
+
+to_bytes = lambda x: convert(x, bytes)
 
 b2 = to_bytes(2)
 b1 = to_bytes(1)

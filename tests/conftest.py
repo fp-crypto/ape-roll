@@ -1,10 +1,6 @@
 import pytest
-from weiroll import WeirollContract
-
-
-@pytest.fixture(scope="function", autouse=True)
-def shared_setup(fn_isolation):
-    pass
+from ape_roll.client import WeirollContract
+from ape import project
 
 
 @pytest.fixture(scope="session")
@@ -13,8 +9,8 @@ def alice(accounts):
 
 
 @pytest.fixture(scope="module")
-def weiroll_vm(alice, TestableVM):
-    vm = alice.deploy(TestableVM)
+def weiroll_vm(alice):
+    vm = alice.deploy(project.TestableVM)
     yield vm
 
 

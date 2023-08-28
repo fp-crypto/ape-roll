@@ -1,0 +1,19 @@
+name: ape-roll
+
+plugins:
+  - name: solidity
+  - name: etherscan
+
+dependencies:
+  - name: openzeppelin
+    github: OpenZeppelin/openzeppelin-contracts
+    version: 4.1.0
+
+solidity:
+  import_remapping:
+    - "@openzeppelin/contracts=openzeppelin/v4.1.0"
+
+ethereum:
+  default_network: mainnet-fork
+  mainnet_fork:
+    default_provider: foundry
