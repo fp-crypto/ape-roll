@@ -32,8 +32,8 @@ def test_swaps(accounts, weiroll_vm):
         Contract("0xE592427A0AEce92De3Edee1F18E0157C05861564")
     )
 
-    yvweth.ape_contract.transfer(weiroll_vm, 2e18, {"from": whale})
-    weth.ape_contract.transfer(weiroll_vm, 1.118383e18, {"from": whale})
+    yvweth.ape_contract.transfer(weiroll_vm, int(2e18), sender=whale)
+    weth.ape_contract.transfer(weiroll_vm, int(1.118383e18), sender=whale)
 
     planner.call(yvweth.ape_contract, "withdraw(uint256)", int(1e18))
 
@@ -76,9 +76,8 @@ def test_swaps(accounts, weiroll_vm):
     )
 
     cmds, state = planner.plan()
-    weiroll_tx = weiroll_vm.execute(
-        cmds, state, {"from": weiroll_vm, "gas_limit": 8_000_000, "gas_price": 0}
-    )
+    weiroll_tx = weiroll_vm.execute(cmds, state, sender=weiroll_vm)
+    assert False
 
 
 @pytest.mark.skip("broken")
@@ -161,7 +160,7 @@ def test_balancer_swap(accounts, weiroll_vm, tuple_helper):
     )
 
     cmds, state = planner.plan()
-    
+
     assert bal.balanceOf(weiroll_vm) > 0
     assert weth.balanceOf(weiroll_vm) == 0
 
