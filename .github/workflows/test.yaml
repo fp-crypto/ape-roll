@@ -46,6 +46,12 @@ jobs:
     - name: Install ape plugins
       run: poetry run ape plugins install -y .
 
+    - name: Install foundry
+      run: curl -L https://foundry.paradigm.xyz | bash && foundryup
+
+    - name: Install ape-foundry
+      run: poetry run ape install foundry
+
     - name: Compile Code
       run: poetry run ape compile --size
 
