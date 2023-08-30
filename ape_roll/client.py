@@ -321,10 +321,14 @@ class WeirollContract:
                 # define a new function which will use brownie' get_fn_from_args
                 # to decide which plan_fn to route to
                 def _overload(*args, fn_name=name):
-                    overload_method = self.ape_contract.__getattribute__(fn_name)
-                    method = overload_method._get_fn_from_args(args)
-                    signature = method.signature
-                    plan_fn = self.functions[signature]
+                    overload_method = getattr(self.ape_contract, fn_name)
+                    method = ape.contracts.base._select_method_abi(overload_method.abis, args)
+                    selector = (
+                        ape.project.provider.network.ecosystem.get_method_selector(
+                            method
+                        )
+                    )
+                    plan_fn = self.functions[selector.hex()]
                     return plan_fn(*args)
 
                 setattr(self, name, _overload)
@@ -805,4 +809,3 @@ def _get_type_strings(abi_types: list[ABIType]) -> list[str]:
         else:
             type_strings.append(abi_type.type)
     return type_strings
-
