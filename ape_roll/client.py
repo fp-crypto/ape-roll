@@ -9,6 +9,9 @@ from ape.contracts.base import ContractInstance as ApeContractInstance
 import eth_abi
 import eth_abi.packed
 from hexbytes import HexBytes
+from ethpm_types.abi import ABIType
+
+from .utils import eth_abi_encode_single
 
 MAX_UINT256 = 2 ** 256 - 1
 
@@ -109,7 +112,7 @@ class FunctionFragment:
 
         # split up complex types into 32 byte chunks that weiroll state can handle
         args = simple_args(self.simple_sizes, args)
-        
+
         return [encodeArg(arg, self.simple_inputs[i]) for (i, arg) in enumerate(args)]
 
 
@@ -241,7 +244,7 @@ def encodeArg(arg, param):
         return arg
     if isinstance(arg, WeirollPlanner):
         return SubplanValue(arg)
-    return LiteralValue(param, eth_abi.encode([param], [arg]))
+    return LiteralValue(param, eth_abi_encode_single(param, arg))
 
 
 class WeirollContract:
@@ -679,9 +682,7 @@ class WeirollPlanner:
                     arg for arg in command.call.args if isinstance(arg, SubplanValue)
                 ).planner
                 subcommands = subplanner._buildCommands(ps)
-                ps.state.append(
-                    HexBytes(eth_abi.encode(["bytes32[]"], [subcommands]))[32:]
-                )
+                ps.state.append(eth_abi_encode_single("bytes32[]", subcommands)[32:])
                 # The slot is no longer needed after this command
                 ps.freeSlots.append(len(ps.state) - 1)
 
@@ -794,9 +795,6 @@ class WeirollPlanner:
         return encodedCommands, state
 
 
-from ethpm_types.abi import ABIType
-
-
 def _get_type_strings(abi_types: list[ABIType]) -> list[str]:
     type_strings: list = []
 
@@ -807,3 +805,4 @@ def _get_type_strings(abi_types: list[ABIType]) -> list[str]:
         else:
             type_strings.append(abi_type.type)
     return type_strings
+

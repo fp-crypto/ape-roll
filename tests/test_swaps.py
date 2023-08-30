@@ -77,7 +77,6 @@ def test_swaps(accounts, weiroll_vm):
 
     cmds, state = planner.plan()
     weiroll_tx = weiroll_vm.execute(cmds, state, sender=weiroll_vm)
-    assert False
 
 
 @pytest.mark.skip("broken")

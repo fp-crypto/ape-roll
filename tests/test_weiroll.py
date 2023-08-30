@@ -3,6 +3,7 @@ import pytest
 from hexbytes import HexBytes
 
 from ape_roll import client as ape_roll
+from ape_roll.utils import eth_abi_encode_single
 
 
 def test_weiroll_contract(math):
@@ -93,7 +94,6 @@ def test_weiroll_with_state_slots_for_intermediate_values(alice, math):
     assert state[1] == b""
 
 
-@pytest.mark.skip("FIXME")
 @pytest.mark.parametrize(
     "param,value,expected",
     [
@@ -108,7 +108,7 @@ def test_weiroll_abi_encode(param, value, expected):
     expected = HexBytes(expected)
     print("expected:", expected)
 
-    literalValue = HexBytes(eth_abi.encode([param], [value]))
+    literalValue = eth_abi_encode_single(param, value)
     print("literalValue:", literalValue)
 
     assert literalValue == expected
@@ -126,9 +126,8 @@ def test_weiroll_takes_dynamic_arguments(alice, strings):
         "0x367bbd780080ffffffffffff", strings.address
     )
 
-    print(state)
     assert len(state) == 1
-    assert state[0] == eth_abi.encode(["string"], [test_str])
+    assert state[0] == eth_abi_encode_single("string", test_str)
 
 
 def test_weiroll_returns_dynamic_arguments(alice, strings):
@@ -142,8 +141,8 @@ def test_weiroll_returns_dynamic_arguments(alice, strings):
     )
 
     assert len(state) == 2
-    assert state[0] == eth_abi.encode(["string"], ["Hello, "])
-    assert state[1] == eth_abi.encode(["string"], ["world!"])
+    assert state[0] == eth_abi_encode_single("string", "Hello, ")
+    assert state[1] == eth_abi_encode_single("string", "world!")
 
 
 def test_weiroll_takes_dynamic_argument_from_a_return_value(alice, strings):
@@ -161,8 +160,8 @@ def test_weiroll_takes_dynamic_argument_from_a_return_value(alice, strings):
     )
 
     assert len(state) == 2
-    assert state[0] == eth_abi.encode(["string"], ["Hello, "])
-    assert state[1] == eth_abi.encode(["string"], ["world!"])
+    assert state[0] == eth_abi_encode_single("string", "Hello, ")
+    assert state[1] == eth_abi_encode_single("string", "world!")
 
 
 def test_weiroll_argument_counts_match(math):
