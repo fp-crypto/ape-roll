@@ -4,3 +4,5 @@ build
 .build
 dist/
 .cache
+.coverage
+coverage*

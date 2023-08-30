@@ -1,6 +1,6 @@
 import pytest
 from ape_roll.client import WeirollContract
-from ape import project
+from ape import project, networks
 
 
 @pytest.fixture(scope="session")
@@ -75,3 +75,8 @@ def tuple_helper_yul(alice):
 @pytest.fixture(scope="module")
 def tuple_helper_vy(alice):
     yield alice.deploy(project.TupleHelperVy)
+
+@pytest.fixture(scope="module")
+def mainnet_fork():
+    with networks.ethereum.mainnet_fork.use_provider("foundry"):
+        yield

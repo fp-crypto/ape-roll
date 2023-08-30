@@ -13,7 +13,7 @@ solidity:
   import_remapping:
     - "@openzeppelin/contracts=openzeppelin/v4.1.0"
 
-ethereum:
-  default_network: mainnet-fork
-  mainnet_fork:
-    default_provider: foundry
+      # ethereum:
+      #   default_network: mainnet-fork
+      #   mainnet_fork:
+      #     default_provider: foundry
