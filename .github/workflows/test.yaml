@@ -50,7 +50,7 @@ jobs:
         run: curl -L https://foundry.paradigm.xyz | bash
 
       - name: Install foundry
-        run: foundryup
+        run: source /home/runner/.bashrc && foundryup
 
       - name: Install ape-foundry
         run: poetry run ape install foundry
