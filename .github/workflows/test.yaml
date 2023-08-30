@@ -47,7 +47,7 @@ jobs:
       run: poetry run ape plugins install -y .
 
     - name: Install foundry
-      run: curl -L https://foundry.paradigm.xyz | bash && bash -c foundryup
+      run: curl -L https://foundry.paradigm.xyz | bash; bash -c foundryup
 
     - name: Install ape-foundry
       run: poetry run ape install foundry
