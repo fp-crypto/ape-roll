@@ -50,7 +50,7 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
 
       - name: Install ape-foundry
-        run: poetry run ape install foundry
+        run: poetry run ape plugin install foundry
 
       - name: Compile Code
         run: poetry run ape compile --size
