@@ -1,14 +1,14 @@
-# weiroll-py
+# ape-roll
 
-weiroll-py is a planner for the operation-chaining/scripting language [weiroll](https://github.com/weiroll/weiroll).
-weiroll-py is inspired by [weiroll.js](https://github.com/weiroll/weiroll.js).
+ape-roll is a planner for the operation-chaining/scripting language [weiroll](https://github.com/weiroll/weiroll).
+ape-roll is inspired by [weiroll.js](https://github.com/weiroll/weiroll.js).
 
 It provides an easy-to-use API for generating weiroll programs that can then be passed to any compatible implementation.
 
 ## Installation
 
 ```
-pip install weiroll-py==0.2.1
+pip install ape-roll==0.2.1
 ```
 
 where `0.2.1` is the latest version.

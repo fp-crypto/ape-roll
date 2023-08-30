@@ -4,14 +4,16 @@ from enum import IntEnum, IntFlag
 from functools import cache
 from typing import Optional
 
-import brownie
+import ape
+from ape.contracts.base import ContractInstance as ApeContractInstance
 import eth_abi
 import eth_abi.packed
-from brownie.convert.utils import get_type_strings
-from brownie.network.contract import OverloadedMethod
 from hexbytes import HexBytes
+from ethpm_types.abi import ABIType
 
-MAX_UINT256 = 2**256-1
+from .utils import eth_abi_encode_single
+
+MAX_UINT256 = 2 ** 256 - 1
 
 # TODO: real types?
 Value = namedtuple("Value", "param")
@@ -24,7 +26,6 @@ def simple_type_strings(inputs) -> tuple[Optional[list[str]], Optional[list[int]
 
     related: https://github.com/weiroll/weiroll.js/pull/34
     """
-
 
     if not inputs:
         return None, None
@@ -76,36 +77,38 @@ def simple_args(simple_sizes, args):
 
 # TODO: not sure about this class. its mostly here because this is how the javascript sdk works. now that this works, i think we can start refactoring to use brownie more directly
 class FunctionFragment:
-    def __init__(self, brownieContract: brownie.Contract, selector):
-        function_name = brownieContract.selectors[selector]
+    def __init__(self, ape_contract: ApeContractInstance, selector):
+        method_abi = ape_contract.contract_type.methods[selector]
 
-        function = getattr(brownieContract, function_name)
+        function = getattr(ape_contract, method_abi.name)
 
-        if isinstance(function, OverloadedMethod):
-            overloaded_func = None
-            for m in function.methods.values():
-                # TODO: everyone is inconsistent about signature vs selector vs name
-                if m.signature == selector:
-                    overloaded_func = m
-                    break
+        # if isinstance(function, OverloadedMethod):
+        #     overloaded_func = None
+        #     for m in function.methods.values():
+        #         # TODO: everyone is inconsistent about signature vs selector vs name
+        #         if m.signature == selector:
+        #             overloaded_func = m
+        #             break
 
-            assert overloaded_func
-            function = overloaded_func
+        #     assert overloaded_func
+        #     function = overloaded_func
 
         self.function = function
-        self.name = function_name
-        self.signature = function.signature
-        self.inputs = get_type_strings(function.abi["inputs"])
+        self.name = method_abi.name
+        self.signature = selector
+        self.inputs = _get_type_strings(method_abi.inputs)
 
         # look at the inputs that aren't dynamic types but also aren't 32 bytes long and cut them up
         self.simple_inputs, self.simple_sizes = simple_type_strings(self.inputs)
 
-        self.outputs = get_type_strings(function.abi["outputs"])
+        self.outputs = _get_type_strings(method_abi.outputs)
         # TODO: do something to handle outputs of uncommon types?
 
     def encode_args(self, *args):
         if len(args) != len(self.inputs):
-            raise ValueError(f"Function {self.name} has {len(self.inputs)} arguments but {len(self.args)} provided")
+            raise ValueError(
+                f"Function {self.name} has {len(self.inputs)} arguments but {len(self.args)} provided"
+            )
 
         # split up complex types into 32 byte chunks that weiroll state can handle
         args = simple_args(self.simple_sizes, args)
@@ -170,7 +173,14 @@ class CommandFlags(IntFlag):
 
 
 class FunctionCall:
-    def __init__(self, contract, flags: CommandFlags, fragment: FunctionFragment, args, callvalue=0):
+    def __init__(
+        self,
+        contract,
+        flags: CommandFlags,
+        fragment: FunctionFragment,
+        args,
+        callvalue=0,
+    ):
         self.contract = contract
         self.flags = flags
         self.fragment = fragment
@@ -191,7 +201,7 @@ class FunctionCall:
             (self.flags & ~CommandFlags.CALLTYPE_MASK) | CommandFlags.CALL_WITH_VALUE,
             self.fragment,
             self.args,
-            eth_abi.encode_single("uint", value),
+            eth_abi.encode(["uint"], [value]),
         )
 
     def rawValue(self):
@@ -228,11 +238,13 @@ def isDynamicType(param) -> bool:
 def encodeArg(arg, param):
     if isValue(arg):
         if arg.param != param:
-            raise ValueError(f"Cannot pass value of type ${arg.param} to input of type ${param}")
+            raise ValueError(
+                f"Cannot pass value of type ${arg.param} to input of type ${param}"
+            )
         return arg
     if isinstance(arg, WeirollPlanner):
         return SubplanValue(arg)
-    return LiteralValue(param, eth_abi.encode_single(param, arg))
+    return LiteralValue(param, eth_abi_encode_single(param, arg))
 
 
 class WeirollContract:
@@ -253,9 +265,11 @@ class WeirollContract:
     * [[Planner.addSubplan]], or [[Planner.replaceState]] to add to the sequence of calls to plan.
     """
 
-    def __init__(self, brownieContract: brownie.Contract, commandFlags: CommandFlags = 0):
-        self.brownieContract = brownieContract
-        self.address = brownieContract.address
+    def __init__(
+        self, ape_contract: ApeContractInstance, commandFlags: CommandFlags = 0
+    ):
+        self.ape_contract = ape_contract
+        self.address = ape_contract.address
 
         self.commandFlags = commandFlags
         self.functions = {}  # aka functionsBySelector
@@ -264,8 +278,12 @@ class WeirollContract:
 
         selectorsByName = defaultdict(list)
 
-        for selector, name in self.brownieContract.selectors.items():
-            fragment = FunctionFragment(self.brownieContract, selector)
+        for method in self.ape_contract.contract_type.methods:
+            selector = ape.project.provider.network.ecosystem.get_method_selector(
+                method
+            ).hex()
+
+            fragment = FunctionFragment(self.ape_contract, selector)
 
             # Check that the signature is unique; if not the ABI generation has
             # not been cleaned or may be incorrectly generated
@@ -283,7 +301,7 @@ class WeirollContract:
             setattr(self, selector, plan_fn)
 
             # Track unique names; we only expose bare named functions if they are ambiguous
-            selectorsByName[name].append(selector)
+            selectorsByName[method.name].append(selector)
 
         self.functionsByUniqueName = {}
 
@@ -303,7 +321,7 @@ class WeirollContract:
                 # define a new function which will use brownie' get_fn_from_args
                 # to decide which plan_fn to route to
                 def _overload(*args, fn_name=name):
-                    overload_method = self.brownieContract.__getattribute__(fn_name)
+                    overload_method = self.ape_contract.__getattribute__(fn_name)
                     method = overload_method._get_fn_from_args(args)
                     signature = method.signature
                     plan_fn = self.functions[signature]
@@ -321,12 +339,11 @@ class WeirollContract:
 
                 self.functionsBySignature[signature] = plan_fn
 
-
     @classmethod
-    @cache
+    # @cache
     def createContract(
         cls,
-        contract: brownie.Contract,
+        contract: ApeContractInstance,
         commandflags=CommandFlags.CALL,
     ):
         """
@@ -344,10 +361,10 @@ class WeirollContract:
         )
 
     @classmethod
-    @cache
+    # @cache
     def createLibrary(
         cls,
-        contract: brownie.Contract,
+        contract: ApeContractInstance,
     ):
         """
         * Creates a [[Contract]] object from an ethers.js contract.
@@ -365,7 +382,9 @@ class WeirollContract:
 def buildCall(contract: WeirollContract, fragment: FunctionFragment):
     def _call(*args) -> FunctionCall:
         if len(args) != len(fragment.inputs):
-            raise ValueError(f"Function {fragment.name} has {len(fragment.inputs)} arguments but {len(args)} provided")
+            raise ValueError(
+                f"Function {fragment.name} has {len(fragment.inputs)} arguments but {len(args)} provided"
+            )
 
         # TODO: maybe this should just be fragment.encode_args()
         encodedArgs = fragment.encode_args(*args)
@@ -413,7 +432,9 @@ class WeirollPlanner:
 
         self.clone = clone
 
-    def approve(self, token: brownie.Contract, spender: str, wei_needed, approve_wei=None) -> Optional[ReturnValue]:
+    def approve(
+        self, token: ApeContractInstance, spender: str, wei_needed, approve_wei=None
+    ) -> Optional[ReturnValue]:
         key = (token, self.clone, spender)
 
         if approve_wei is None:
@@ -432,14 +453,14 @@ class WeirollPlanner:
 
         return self.call(token, "approve", spender, approve_wei)
 
-    def call(self, brownieContract: brownie.Contract, func_name, *args):
+    def call(self, ape_contract: ApeContractInstance, func_name, *args):
         """func_name can be just the name, or it can be the full signature.
 
         If there are multiple functions with the same name, you must use the signature.
 
         TODO: brownie has some logic for figuring out which overloaded method to use. we should use that here
         """
-        weirollContract = WeirollContract.createContract(brownieContract)
+        weirollContract = WeirollContract.createContract(ape_contract)
 
         if func_name.endswith(")"):
             # TODO: would be interesting to look at args and do this automatically
@@ -449,18 +470,15 @@ class WeirollPlanner:
 
         return self.add(func(*args))
 
-    def delegatecall(self, brownieContract: brownie.Contract, func_name, *args):
-        contract = WeirollContract.createLibrary(brownieContract)
+    def delegatecall(self, ape_contract: ApeContractInstance, func_name, *args):
+        contract = WeirollContract.createLibrary(ape_contract)
 
         if func_name in contract.functionsByUniqueName:
             func = contract.functionsByUniqueName[func_name]
         elif func_name in contract.functionsBySignature:
             func = contract.functionsBySignature[func_name]
         else:
-            # print("func_name:", func_name)
-            # print("functionsByUniqueName:", contract.functionsByUniqueName)
-            # print("functionsBySignature:", contract.functionsBySignature)
-            raise ValueError(f"Unknown func_name ({func_name}) on {brownieContract}")
+            raise ValueError(f"Unknown func_name ({func_name}) on {ape_contract}")
 
         return self.add(func(*args))
 
@@ -485,7 +503,9 @@ class WeirollPlanner:
 
         for arg in call.args:
             if isinstance(arg, SubplanValue):
-                raise ValueError("Only subplans can have arguments of type SubplanValue")
+                raise ValueError(
+                    "Only subplans can have arguments of type SubplanValue"
+                )
 
         if call.flags & CommandFlags.TUPLE_RETURN:
             return ReturnValue("bytes", command)
@@ -494,11 +514,9 @@ class WeirollPlanner:
         if len(call.fragment.outputs) != 1:
             return None
 
-        # print("call fragment outputs", call.fragment.outputs)
-
         return ReturnValue(call.fragment.outputs[0], command)
 
-    def subcall(self, brownieContract: brownie.Contract, func_name, *args):
+    def subcall(self, ape_contract: ApeContractInstance, func_name, *args):
         """
         * Adds a call to a subplan. This has the effect of instantiating a nested instance of the weiroll
         * interpreter, and is commonly used for functionality such as flashloans, control flow, or anywhere
@@ -529,13 +547,13 @@ class WeirollPlanner:
         * ```
         * @param call The [[FunctionCall]] to add to the planner.
         """
-        contract = WeirollContract.createContract(brownieContract)
+        contract = WeirollContract.createContract(ape_contract)
         func = getattr(contract, func_name)
         func_call = func(*args)
         return self.addSubplan(func_call)
 
-    def subdelegatecall(self, brownieContract: brownie.Contract, func_name, *args):
-        contract = WeirollContract.createLibrary(brownieContract)
+    def subdelegatecall(self, ape_contract: ApeContractInstance, func_name, *args):
+        contract = WeirollContract.createLibrary(ape_contract)
         func = getattr(contract, func_name)
         func_call = func(*args)
         return self.addSubplan(func_call)
@@ -555,8 +573,14 @@ class WeirollPlanner:
                 hasState = True
         if not hasSubplan or not hasState:
             raise ValueError("Subplans must take planner and state arguments")
-        if call.fragment.outputs and len(call.fragment.outputs) == 1 and call.fragment.outputs[0] != "bytes[]":
-            raise ValueError("Subplans must return a bytes[] replacement state or nothing")
+        if (
+            call.fragment.outputs
+            and len(call.fragment.outputs) == 1
+            and call.fragment.outputs[0] != "bytes[]"
+        ):
+            raise ValueError(
+                "Subplans must return a bytes[] replacement state or nothing"
+            )
 
         self.commands.append(Command(call, CommandType.SUBPLAN))
 
@@ -568,7 +592,9 @@ class WeirollPlanner:
         * so it may produce invalid plans if you don't know what you're doing.
         * @param call The [[FunctionCall]] to execute
         """
-        if (call.fragment.outputs and len(call.fragment.outputs) != 1) or call.fragment.outputs[0] != "bytes[]":
+        if (
+            call.fragment.outputs and len(call.fragment.outputs) != 1
+        ) or call.fragment.outputs[0] != "bytes[]":
             raise ValueError("Function replacing state must return a bytes[]")
         self.commands.append(Command(call, CommandType.RAWCALL))
 
@@ -585,7 +611,10 @@ class WeirollPlanner:
         # Build visibility maps
         for command in self.commands:
             inargs = command.call.args
-            if command.call.flags & CommandFlags.CALLTYPE_MASK == CommandFlags.CALL_WITH_VALUE:
+            if (
+                command.call.flags & CommandFlags.CALLTYPE_MASK
+                == CommandFlags.CALL_WITH_VALUE
+            ):
                 if not command.call.callvalue:
                     raise ValueError("Call with value must have a value parameter")
                 inargs = [command.call.callvalue] + inargs
@@ -593,7 +622,9 @@ class WeirollPlanner:
             for arg in inargs:
                 if isinstance(arg, ReturnValue):
                     if not arg.command in seen:
-                        raise ValueError(f"Return value from '{arg.command.call.fragment.name}' is not visible here")
+                        raise ValueError(
+                            f"Return value from '{arg.command.call.fragment.name}' is not visible here"
+                        )
                     commandVisibility[arg.command] = command
                 elif isinstance(arg, LiteralValue):
                     literalVisibility[arg.value] = command
@@ -602,7 +633,9 @@ class WeirollPlanner:
                     if not command.call.fragment.outputs:
                         # Read-only subplan; return values aren't visible externally
                         subplanSeen = set(seen)
-                    arg.planner._preplan(commandVisibility, literalVisibility, subplanSeen, planners)
+                    arg.planner._preplan(
+                        commandVisibility, literalVisibility, subplanSeen, planners
+                    )
                 elif not isinstance(arg, StateValue):
                     raise ValueError(f"Unknown function argument type '{arg}'")
 
@@ -613,7 +646,10 @@ class WeirollPlanner:
     def _buildCommandArgs(self, command: Command, returnSlotMap, literalSlotMap, state):
         # Build a list of argument value indexes
         inargs = command.call.args
-        if command.call.flags & CommandFlags.CALLTYPE_MASK == CommandFlags.CALL_WITH_VALUE:
+        if (
+            command.call.flags & CommandFlags.CALLTYPE_MASK
+            == CommandFlags.CALL_WITH_VALUE
+        ):
             if not command.call.callvalue:
                 raise ValueError("Call with value must have a value parameter")
             inargs = [command.call.callvalue] + inargs
@@ -642,15 +678,19 @@ class WeirollPlanner:
         for command in self.commands:
             if command.type == CommandType.SUBPLAN:
                 # find the subplan
-                subplanner = next(arg for arg in command.call.args if isinstance(arg, SubplanValue)).planner
+                subplanner = next(
+                    arg for arg in command.call.args if isinstance(arg, SubplanValue)
+                ).planner
                 subcommands = subplanner._buildCommands(ps)
-                ps.state.append(HexBytes(eth_abi.encode_single("bytes32[]", subcommands))[32:])
+                ps.state.append(eth_abi_encode_single("bytes32[]", subcommands)[32:])
                 # The slot is no longer needed after this command
                 ps.freeSlots.append(len(ps.state) - 1)
 
             flags = command.call.flags
 
-            args = self._buildCommandArgs(command, ps.returnSlotMap, ps.literalSlotMap, ps.state)
+            args = self._buildCommandArgs(
+                command, ps.returnSlotMap, ps.literalSlotMap, ps.state
+            )
 
             if len(args) > 6:
                 flags |= CommandFlags.EXTENDED_COMMAND
@@ -680,11 +720,15 @@ class WeirollPlanner:
                     ps.state.append(b"")
 
                 if (
-                    command.call.fragment.outputs and isDynamicType(command.call.fragment.outputs[0])
+                    command.call.fragment.outputs
+                    and isDynamicType(command.call.fragment.outputs[0])
                 ) or command.call.flags & CommandFlags.TUPLE_RETURN != 0:
                     ret |= 0x80
             elif command.type in [CommandType.RAWCALL, CommandType.SUBPLAN]:
-                if command.call.fragment.outputs and len(command.call.fragment.outputs) == 1:
+                if (
+                    command.call.fragment.outputs
+                    and len(command.call.fragment.outputs) == 1
+                ):
                     ret = 0xFE
 
             if flags & CommandFlags.EXTENDED_COMMAND == CommandFlags.EXTENDED_COMMAND:
@@ -749,3 +793,16 @@ class WeirollPlanner:
         encodedCommands = self._buildCommands(ps)
 
         return encodedCommands, state
+
+
+def _get_type_strings(abi_types: list[ABIType]) -> list[str]:
+    type_strings: list = []
+
+    for abi_type in abi_types:
+        if abi_type.components != None:
+            sub_type_strings = _get_type_strings(abi_type.components)
+            type_strings.append("(" + ",".join(sub_type_strings) + ")")
+        else:
+            type_strings.append(abi_type.type)
+    return type_strings
+

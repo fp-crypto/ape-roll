@@ -1,3 +1,6 @@
 .hypothesis
 __pycache__
 build
+.build
+dist/
+.cache
