@@ -46,11 +46,8 @@ jobs:
       - name: Install ape plugins
         run: poetry run ape plugins install -y .
 
-      - name: Install foundryup
-        run: curl -L https://foundry.paradigm.xyz | bash
-
-      - name: Install foundry
-        run: source /home/runner/.bashrc && foundryup
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
 
       - name: Install ape-foundry
         run: poetry run ape install foundry
