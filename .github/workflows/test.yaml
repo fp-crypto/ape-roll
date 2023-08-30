@@ -44,10 +44,10 @@ jobs:
       run: poetry install
 
     - name: Compile Code
-      run: poetry run brownie compile --size
+      run: poetry run ape compile --size
 
     - name: Run Tests
       env:
         ETHERSCAN_TOKEN: MW5CQA6QK5YMJXP2WP3RA36HM5A7RA1IHA
         WEB3_INFURA_PROJECT_ID: b7821200399e4be2b4e5dbdf06fbe85b
-      run: poetry run brownie test
+      run: poetry run ape test
