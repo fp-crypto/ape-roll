@@ -36,6 +36,7 @@ def simple_type_strings(inputs) -> tuple[Optional[list[str]], Optional[list[int]
         if i.endswith("]") and not i.endswith("[]"):
             # fixed size array. cut it up
             m = re.match(r"([a-z0-9]+)\[([0-9]+)\]", i)
+            assert m is not None
 
             size = int(m.group(2))
 
@@ -107,12 +108,13 @@ class FunctionFragment:
     def encode_args(self, *args):
         if len(args) != len(self.inputs):
             raise ValueError(
-                f"Function {self.name} has {len(self.inputs)} arguments but {len(self.args)} provided"
+                f"Function {self.name} has {len(self.inputs)} arguments but {len(args)} provided"
             )
 
         # split up complex types into 32 byte chunks that weiroll state can handle
         args = simple_args(self.simple_sizes, args)
 
+        assert self.simple_inputs is not None
         return [encodeArg(arg, self.simple_inputs[i]) for (i, arg) in enumerate(args)]
 
 
@@ -266,7 +268,9 @@ class WeirollContract:
     """
 
     def __init__(
-        self, ape_contract: ApeContractInstance, commandFlags: CommandFlags = 0
+        self,
+        ape_contract: ApeContractInstance,
+        commandFlags: CommandFlags = CommandFlags(0),
     ):
         self.ape_contract = ape_contract
         self.address = ape_contract.address
@@ -322,7 +326,9 @@ class WeirollContract:
                 # to decide which plan_fn to route to
                 def _overload(*args, fn_name=name):
                     overload_method = getattr(self.ape_contract, fn_name)
-                    method = ape.contracts.base._select_method_abi(overload_method.abis, args)
+                    method = ape.contracts.base._select_method_abi(
+                        overload_method.abis, args
+                    )
                     selector = (
                         ape.project.provider.network.ecosystem.get_method_selector(
                             method
@@ -602,12 +608,13 @@ class WeirollPlanner:
             raise ValueError("Function replacing state must return a bytes[]")
         self.commands.append(Command(call, CommandType.RAWCALL))
 
-    def _preplan(self, commandVisibility, literalVisibility, seen=None, planners=None):
-        if seen is None:
-            seen: set[Command] = set()
-        if planners is None:
-            planners: set[WeirollPlanner] = set()
-
+    def _preplan(
+        self,
+        commandVisibility,
+        literalVisibility,
+        seen: set[Command] = set(),
+        planners: set["WeirollPlanner"] = set(),
+    ):
         if self in planners:
             raise ValueError("A planner cannot contain itself")
         planners.add(self)

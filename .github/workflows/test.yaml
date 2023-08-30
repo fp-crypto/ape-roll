@@ -43,6 +43,9 @@ jobs:
     - name: Install dependencies
       run: poetry install
 
+    - name: Install ape plugins
+      run: poetry run ape plugins install -y .
+
     - name: Compile Code
       run: poetry run ape compile --size
 
