@@ -53,7 +53,7 @@ jobs:
         run: poetry run ape plugins install foundry
 
       - name: List ape networks
-        run: poetry run ape networks list
+        run: poetry run ape networks list --verbosity DEBUG
 
       - name: Compile Code
         run: poetry run ape compile --size
