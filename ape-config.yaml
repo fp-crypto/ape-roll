@@ -13,6 +13,12 @@ solidity:
   import_remapping:
     - "@openzeppelin/contracts=openzeppelin/v4.1.0"
 
+foundry:
+  fork:
+    ethereum:
+      mainnet:
+        upstream_provider: geth
+
       # ethereum:
       #   default_network: mainnet-fork
       #   mainnet_fork:
