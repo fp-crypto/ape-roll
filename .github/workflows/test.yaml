@@ -22,18 +22,13 @@ jobs:
             ~/.vvm
           key: ${{ runner.os }}-compiler-cache
 
-      - name: Setup node.js
-        uses: actions/setup-node@v1
-        with:
-          node-version: "12.x"
-
-      - name: Install ganache
-        run: npm install -g ganache-cli@6.12.1
-
-      - name: Set up python 3.9
+      - name: Set up python 3.10
         uses: actions/setup-python@v2
         with:
-          python-version: 3.9
+          python-version: 3.10
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
 
       - name: Poetry
         uses: abatilo/actions-poetry@v2.0.0
@@ -45,9 +40,6 @@ jobs:
 
       - name: Install ape plugins
         run: poetry run ape plugins install -y .
-
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
 
       - name: Install ape-foundry
         run: poetry run ape plugins install foundry
