@@ -52,6 +52,9 @@ jobs:
       - name: Install ape-foundry
         run: poetry run ape plugins install foundry
 
+      - name: List ape networks
+        run: poetry run ape networks list
+
       - name: Compile Code
         run: poetry run ape compile --size
 
