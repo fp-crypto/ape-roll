@@ -51,8 +51,8 @@ jobs:
 
       - name: Run Tests
         env:
-          ETHERSCAN_TOKEN: ${{ vars.ETHERSCAN_TOKEN }}
+          ETHERSCAN_TOKEN: ${{ secrets.ETHERSCAN_TOKEN }}
           WEB3_INFURA_PROJECT_ID: ${{ secrets.WEB3_INFURA_PROJECT_ID }}
-          ONE_INCH_API_KEY: ${{ vars.ONE_INCH_API_KEY }}
+          ONE_INCH_API_KEY: ${{ secrets.ONE_INCH_API_KEY }}
         run: poetry run ape test --network ethereum:mainnet-fork
 
