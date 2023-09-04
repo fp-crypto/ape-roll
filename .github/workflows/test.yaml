@@ -29,6 +29,8 @@ jobs:
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
 
       - name: Poetry
         uses: abatilo/actions-poetry@v2.0.0
@@ -42,10 +44,7 @@ jobs:
         run: poetry run ape plugins install -y .
 
       - name: Install ape-foundry
-        run: poetry run ape plugins install foundry
-
-      - name: List ape networks
-        run: poetry run ape networks list --verbosity DEBUG
+        run: poetry run ape plugins install foundry infura
 
       - name: Compile Code
         run: poetry run ape compile --size
@@ -54,4 +53,4 @@ jobs:
         env:
           ETHERSCAN_TOKEN: MW5CQA6QK5YMJXP2WP3RA36HM5A7RA1IHA
           WEB3_INFURA_PROJECT_ID: b7821200399e4be2b4e5dbdf06fbe85b
-        run: poetry run ape test
+        run: poetry run ape test --networks
