@@ -43,14 +43,15 @@ jobs:
       - name: Install ape plugins
         run: poetry run ape plugins install -y .
 
-      - name: Install ape-foundry
-        run: poetry run ape plugins install foundry infura
+      - name: List networks
+        run: poetry run ape networks list
 
       - name: Compile Code
         run: poetry run ape compile --size
 
       - name: Run Tests
         env:
-          ETHERSCAN_TOKEN: MW5CQA6QK5YMJXP2WP3RA36HM5A7RA1IHA
-          WEB3_INFURA_PROJECT_ID: b7821200399e4be2b4e5dbdf06fbe85b
-        run: poetry run ape test --networks
+          ETHERSCAN_TOKEN: ${{ vars.ETHERSCAN_TOKEN }}
+          WEB3_INFURA_PROJECT_ID: ${{ vars.WEB3_INFURA_PROJECT_ID }}
+          ONE_INCH_API_KEY: ${{ vars.ONE_INCH_API_KEY }}
+        run: poetry run ape test
