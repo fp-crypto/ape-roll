@@ -79,4 +79,4 @@ jobs:
         run: poetry install
 
       - name: Run black
-        run: poetry run black --check --include "(tests|scripts)" .
+        run: poetry run black --check --include "(ape_roll|tests)" .
