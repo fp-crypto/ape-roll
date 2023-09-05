@@ -59,7 +59,7 @@ def test_chaining_action(weiroll_vm, tuple_helper):
     func_name = decoded[0]
     params = decoded[1]
 
-    planner.add(w_weth.approve(one_inch.address, 2 ** 256 - 1))
+    planner.add(w_weth.approve(one_inch.address, 2**256 - 1))
     one_inch_ret = planner.add(w_one_inch.swap(*params.values()).rawValue())
 
     # Since one inch's swap returns a tuple, we need to do an additional
@@ -69,8 +69,8 @@ def test_chaining_action(weiroll_vm, tuple_helper):
     yfi_int_amount = ReturnValue("uint256", one_inch_amount.command)
 
     # Now that we have the yfi amount, let's do curve logic
-    planner.add(w_weth.approve(w_curve_swap.address, 2 ** 256 - 1))
-    planner.add(w_yfi.approve(w_curve_swap.address, 2 ** 256 - 1))
+    planner.add(w_weth.approve(w_curve_swap.address, 2**256 - 1))
+    planner.add(w_yfi.approve(w_curve_swap.address, 2**256 - 1))
 
     curve_ret = planner.add(
         w_curve_swap.add_liquidity([convert("5 ether", int), yfi_int_amount], 0)

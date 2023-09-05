@@ -76,6 +76,7 @@ def tuple_helper_yul(alice):
 def tuple_helper_vy(alice):
     yield alice.deploy(project.TupleHelperVy)
 
+
 @pytest.fixture(scope="module")
 def mainnet_fork():
     with networks.ethereum.mainnet_fork.use_provider("foundry"):

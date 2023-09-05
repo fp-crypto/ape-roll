@@ -13,7 +13,7 @@ from ethpm_types.abi import ABIType
 
 from .utils import eth_abi_encode_single
 
-MAX_UINT256 = 2 ** 256 - 1
+MAX_UINT256 = 2**256 - 1
 
 # TODO: real types?
 Value = namedtuple("Value", "param")
@@ -786,7 +786,7 @@ class WeirollPlanner:
         state: list[str] = []
 
         # Prepopulate the state and state expirations with literals
-        for (literal, lastCommand) in literalVisibility.items():
+        for literal, lastCommand in literalVisibility.items():
             slot = len(state)
             state.append(literal)
             literalSlotMap[literal] = slot

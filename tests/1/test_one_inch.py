@@ -38,7 +38,7 @@ def test_one_inch(weiroll_vm):
     tx = r.json()["tx"]
     one_inch = Contract(tx["to"])
 
-    weth.approve(one_inch, 2 ** 256 - 1, sender=weiroll_vm)
+    weth.approve(one_inch, 2**256 - 1, sender=weiroll_vm)
 
     decoded = one_inch.decode_input(HexBytes(tx["data"]))
     func_name = decoded[0]
