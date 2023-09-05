@@ -536,7 +536,7 @@ test = ["pytest (>=6.0)", "pytest-xdist", "pytest-cov", "hypothesis (>=6.2.0,<7.
 
 [[package]]
 name = "evm-trace"
-version = "0.1.0a22"
+version = "0.1.0a23"
 description = "evm-trace: Ethereum Virtual Machine transaction tracing tool"
 category = "main"
 optional = false
@@ -550,8 +550,8 @@ py-evm = ">=0.7.0a3,<0.8"
 pydantic = ">=1.10.1,<2"
 
 [package.extras]
-dev = ["pytest (>=6.0)", "pytest-xdist", "pytest-cov", "hypothesis (>=6.2.0,<7.0)", "eth-hash", "black (>=23.3.0,<24)", "mypy (>=0.991,<1)", "types-setuptools", "flake8 (>=6.0.0,<7)", "isort (>=5.10.1,<6)", "mdformat (>=0.7.16)", "mdformat-gfm (>=0.3.5)", "mdformat-frontmatter (>=0.4.1)", "setuptools", "wheel", "twine", "commitizen", "pre-commit", "pytest-watch", "ipython", "ipdb"]
-lint = ["black (>=23.3.0,<24)", "mypy (>=0.991,<1)", "types-setuptools", "flake8 (>=6.0.0,<7)", "isort (>=5.10.1,<6)", "mdformat (>=0.7.16)", "mdformat-gfm (>=0.3.5)", "mdformat-frontmatter (>=0.4.1)"]
+dev = ["pytest (>=6.0)", "pytest-xdist", "pytest-cov", "hypothesis (>=6.2.0,<7.0)", "eth-hash", "black (>=23.7.0,<24)", "mypy (>=1.4.1,<2)", "types-setuptools", "flake8 (>=6.1.0,<7)", "isort (>=5.10.1,<6)", "mdformat (>=0.7.16)", "mdformat-gfm (>=0.3.5)", "mdformat-frontmatter (>=0.4.1)", "setuptools", "wheel", "twine", "commitizen", "pre-commit", "pytest-watch", "ipython", "ipdb"]
+lint = ["black (>=23.7.0,<24)", "mypy (>=1.4.1,<2)", "types-setuptools", "flake8 (>=6.1.0,<7)", "isort (>=5.10.1,<6)", "mdformat (>=0.7.16)", "mdformat-gfm (>=0.3.5)", "mdformat-frontmatter (>=0.4.1)"]
 release = ["setuptools", "wheel", "twine"]
 test = ["pytest (>=6.0)", "pytest-xdist", "pytest-cov", "hypothesis (>=6.2.0,<7.0)", "eth-hash"]
 

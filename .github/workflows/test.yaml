@@ -3,8 +3,8 @@ name: Test
 on:
   push:
     branches:
-    - main
-    - develop
+      - main
+      - develop
   pull_request:
 
 jobs:
@@ -12,42 +12,47 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v1
+      - uses: actions/checkout@v1
 
-    - name: Cache compiler installations
-      uses: actions/cache@v2
-      with:
-        path: |
-          ~/.solcx
-          ~/.vvm
-        key: ${{ runner.os }}-compiler-cache
+      - name: Cache compiler installations
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.solcx
+            ~/.vvm
+          key: ${{ runner.os }}-compiler-cache
 
-    - name: Setup node.js
-      uses: actions/setup-node@v1
-      with:
-        node-version: '12.x'
+      - name: Set up python 3.10
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.10.13
 
-    - name: Install ganache
-      run: npm install -g ganache-cli@6.12.1
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
 
-    - name: Set up python 3.9
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.9
+      - name: Poetry
+        uses: abatilo/actions-poetry@v2.0.0
+        with:
+          poetry-version: 1.1.13
 
-    - name: Poetry
-      uses: abatilo/actions-poetry@v2.0.0
-      with:
-        poetry-version: 1.1.13
+      - name: Install dependencies
+        run: poetry install
 
-    - name: Install dependencies
-      run: poetry install
+      - name: Install ape plugins
+        run: poetry run ape plugins install -y .
 
-    - name: Compile Code
-      run: poetry run brownie compile --size
+      - name: List networks
+        run: poetry run ape networks list
 
-    - name: Run Tests
-      env:
-        ETHERSCAN_TOKEN: MW5CQA6QK5YMJXP2WP3RA36HM5A7RA1IHA
-        WEB3_INFURA_PROJECT_ID: b7821200399e4be2b4e5dbdf06fbe85b
-      run: poetry run brownie test
+      - name: Compile Code
+        run: poetry run ape compile --size
+
+      - name: Run Tests
+        env:
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          WEB3_INFURA_PROJECT_ID: ${{ secrets.WEB3_INFURA_PROJECT_ID }}
+          ONE_INCH_API_KEY: ${{ secrets.ONE_INCH_API_KEY }}
+        run: poetry run ape test --network ethereum:mainnet-fork
+

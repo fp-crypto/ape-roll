@@ -8,35 +8,35 @@ It provides an easy-to-use API for generating weiroll programs that can then be 
 ## Installation
 
 ```
-pip install ape-roll==0.2.1
+pip install ape-roll==0.0.1
 ```
 
-where `0.2.1` is the latest version.
+where `0.0.1` is the latest version.
 
 ## Usage
 
 ### Wrapping contracts
 Weiroll programs consist of a sequence of calls to functions in external contracts. These calls can either be delegate calls to dedicated library contracts, or standard/static calls to external contracts. Before you can start creating a weiroll program, you will need to create interfaces for at least one contract you intend to use.
 
-The easiest way to do this is by wrapping brownie contract instances:
+The easiest way to do this is by wrapping ape contract instances:
 
 ```python
-brownie_contract = brownie.Contract(address)
+ape_contract = ape.Contract(address)
 contract = weiroll.WeirollContract(
-  brownie_contract
+  ape_contract
 )
 ```
 
-This will produce a contract object that generates delegate calls to the brownie contract in `WeirollContract`.
+This will produce a contract object that generates delegate calls to the ape contract in `WeirollContract`.
 
 To create delegate to an external contract, use `createLibrary`:
 
 ```python
-brownie_contract = brownie.Contract(address)
+ape_contract = ape.Contract(address)
 # Makes calls using CALL
-contract = weiroll.WeirollContract.createContract(brownie_contract)
+contract = weiroll.WeirollContract.createContract(ape_contract)
 # Makes calls using STATICCALL
-contract = weiroll.WeirollContract.createContract(brownie_contract, weiroll.CommandFlags.STATICCALL)
+contract = weiroll.WeirollContract.createLibrary(ape_contract)
 ```
 
 You can repeat this for each contract you wish to use. A weiroll `WeirollContract` object can be reused across as many planner instances as you wish; there is no need to construct them again for each new program.

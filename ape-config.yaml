@@ -3,6 +3,8 @@ name: ape-roll
 plugins:
   - name: solidity
   - name: etherscan
+  - name: foundry
+  - name: infura
 
 dependencies:
   - name: openzeppelin
@@ -14,6 +16,24 @@ solidity:
     - "@openzeppelin/contracts=openzeppelin/v4.1.0"
 
 ethereum:
-  default_network: mainnet-fork
+  local:
+    default_provider: foundry
   mainnet_fork:
     default_provider: foundry
+
+foundry:
+  fork:
+    ethereum:
+      mainnet:
+        upstream_provider: infura
+
+      #foundry:
+      #  fork:
+      #    ethereum:
+      #      mainnet:
+      #        upstream_provider: geth
+      #
+      # ethereum:
+      #   default_network: mainnet-fork
+      #   mainnet_fork:
+      #     default_provider: foundry

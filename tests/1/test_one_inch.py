@@ -31,7 +31,7 @@ def test_one_inch(weiroll_vm):
             "disableEstimate": "true",
             "allowPartialFill": "false",
         },
-        headers=headers
+        headers=headers,
     )
 
     assert r.ok and r.status_code == 200
