@@ -6,3 +6,4 @@ dist/
 .cache
 .coverage
 coverage*
+node_modules/
