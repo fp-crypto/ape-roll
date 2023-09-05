@@ -24,7 +24,7 @@ The easiest way to do this is by wrapping ape contract instances:
 
 ```python
 ape_contract = ape.Contract(address)
-contract = weiroll.WeirollContract(
+contract = ape_roll.WeirollContract(
   ape_contract
 )
 ```
@@ -36,9 +36,9 @@ To create delegate to an external contract, use `createLibrary`:
 ```python
 ape_contract = ape.Contract(address)
 # Makes calls using CALL
-contract = weiroll.WeirollContract.createContract(ape_contract)
+contract = ape_roll.WeirollContract.createContract(ape_contract)
 # Makes calls using STATICCALL
-contract = weiroll.WeirollContract.createLibrary(ape_contract)
+contract = ape_roll.WeirollContract.createLibrary(ape_contract)
 ```
 
 You can repeat this for each contract you wish to use. A weiroll `WeirollContract` object can be reused across as many planner instances as you wish; there is no need to construct them again for each new program.
@@ -48,7 +48,7 @@ You can repeat this for each contract you wish to use. A weiroll `WeirollContrac
 First, instantiate a planner:
 
 ```python
-planner = weiroll.WeirollPlanner()
+planner = ape_roll.WeirollPlanner()
 ```
 
 Next, add one or more commands to execute:
