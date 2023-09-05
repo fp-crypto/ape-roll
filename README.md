@@ -10,10 +10,10 @@ It provides an easy-to-use API for generating weiroll programs that can then be 
 ## Installation
 
 ```
-pip install ape-roll==0.0.1
+pip install ape-roll==0.0.2
 ```
 
-where `0.0.1` is the latest version.
+where `0.0.2` is the latest version.
 
 ## Usage
 

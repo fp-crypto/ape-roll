@@ -1,12 +1,15 @@
 [tool.poetry]
 name = "ape-roll"
-version = "0.0.1"
+version = "0.0.2"
 description = "Build weiroll transactions with ape"
 authors = ["FP <fp@noemail.com>"]
 license = "MIT"
 packages = [
     { include = "ape_roll" },
 ]
+readme = "README.md"
+homepage = "https://github.com/fp-crypto/ape-roll"
+repository = "https://github.com/fp-crypto/ape-roll"
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.12"
