@@ -370,7 +370,6 @@ def test_plan_with_loop(alice):
 
 
 def _test_more(math):
-
     # TODO: test for curve add_liquidity encoding
     """
 

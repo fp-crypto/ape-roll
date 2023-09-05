@@ -42,7 +42,7 @@ def test_swaps(accounts, weiroll_vm):
     planner.add(weth.approve(sushi_router_w.address, weth_bal))
     planner.add(
         sushi_router_w.swapExactTokensForTokens(
-            weth_bal, 0, [weth.address, susd.address], weiroll_vm.address, 2 ** 256 - 1
+            weth_bal, 0, [weth.address, susd.address], weiroll_vm.address, 2**256 - 1
         )
     )
 
@@ -54,7 +54,7 @@ def test_swaps(accounts, weiroll_vm):
             0,
             [susd.address, weth.address, seth.address],
             weiroll_vm.address,
-            2 ** 256 - 1,
+            2**256 - 1,
         )
     )
 
@@ -67,7 +67,7 @@ def test_swaps(accounts, weiroll_vm):
                 weth.address,
                 500,
                 weiroll_vm.address,
-                2 ** 256 - 1,
+                2**256 - 1,
                 seth_bal,
                 0,
                 0,
@@ -81,9 +81,8 @@ def test_swaps(accounts, weiroll_vm):
 
 @pytest.mark.skip("broken")
 def test_balancer_swap(accounts, weiroll_vm, tuple_helper):
-
     bal_whale = accounts.at("0xF977814e90dA44bFA03b6295A0616a897441aceC", force=True)
-    bal_amount = random.randint(1000, 50000) * 10 ** 18
+    bal_amount = random.randint(1000, 50000) * 10**18
 
     planner = WeirollPlanner(weiroll_vm)
 

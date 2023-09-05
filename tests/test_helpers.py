@@ -13,7 +13,6 @@ b4 = to_bytes(4)
 
 
 def test_insert(tuple_helper, alice):
-
     assert (
         HexBytes(
             tuple_helper.insertElement.transact(
@@ -43,7 +42,7 @@ def test_insert(tuple_helper, alice):
         tuple_helper.insertElement.transact(b2 + b1, 3, b4, False)
 
     rands = HexBytes(
-        b"".join([to_bytes(random.randint(0, 2 ** 256 - 1)) for _ in range(100)])
+        b"".join([to_bytes(random.randint(0, 2**256 - 1)) for _ in range(100)])
     )
 
     for i in range(101):
@@ -57,7 +56,6 @@ def test_insert(tuple_helper, alice):
 
 
 def test_replace(tuple_helper, alice):
-
     assert (
         HexBytes(
             tuple_helper.replaceElement.transact(
@@ -79,7 +77,7 @@ def test_replace(tuple_helper, alice):
         tuple_helper.replaceElement.transact(b2 + b1, 2, b4, False)
 
     rands = HexBytes(
-        b"".join([to_bytes(random.randint(0, 2 ** 256 - 1)) for _ in range(100)])
+        b"".join([to_bytes(random.randint(0, 2**256 - 1)) for _ in range(100)])
     )
 
     for i in range(100):
