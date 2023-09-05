@@ -3,16 +3,15 @@ name: Lint
 on:
   push:
     branches:
-    - main
-    - develop
+      - main
+      - develop
   pull_request:
 
 jobs:
-  lint:
-    solidity:
-      runs-on: ubuntu-latest
+  solidity:
+    runs-on: ubuntu-latest
 
-      steps:
+    steps:
       - name: Check out github repository
         uses: actions/checkout@v2
         with:
@@ -21,7 +20,7 @@ jobs:
       - name: Setup node.js
         uses: actions/setup-node@v1
         with:
-          node-version: '12.x'
+          node-version: "12.x"
 
       - name: Set yarn cache directory path
         id: yarn-cache-dir-path
@@ -44,10 +43,10 @@ jobs:
       - name: Run linter on *.sol and *.json
         run: yarn lint:check
 
-    commits:
-      runs-on: ubuntu-latest
+  commits:
+    runs-on: ubuntu-latest
 
-      steps:
+    steps:
       - name: Check out github repository
         uses: actions/checkout@v2
         with:
@@ -56,10 +55,10 @@ jobs:
       - name: Run commitlint
         uses: wagoid/commitlint-github-action@v2
 
-    black:
-      runs-on: ubuntu-latest
+  black:
+    runs-on: ubuntu-latest
 
-      steps:
+    steps:
       - name: Check out github repository
         uses: actions/checkout@v2
         with:
@@ -80,4 +79,3 @@ jobs:
 
       - name: Run black
         run: poetry run black --check --include "(tests|scripts)" .
-
