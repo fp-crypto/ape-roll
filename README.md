@@ -1,6 +1,6 @@
 # ape-roll
 
-![April O'Neil](https://user-images.githubusercontent.com/83050944/265799164-385dbc06-b9cb-4a80-89bf-72552f0e6d74.png)
+![April O'Neil](https://github.com/MarcoWorms/ape-roll/assets/7863230/3d533d0c-de00-4e43-a930-03d6c0813976)
 
 ape-roll is a planner for the operation-chaining/scripting language [weiroll](https://github.com/weiroll/weiroll).
 ape-roll is inspired by [weiroll.js](https://github.com/weiroll/weiroll.js).
