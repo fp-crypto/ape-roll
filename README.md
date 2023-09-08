@@ -1,11 +1,11 @@
 # ape-roll
 
-![April O'Neil](https://github.com/fp-crypto/ape-roll/assets/83050944/385dbc06-b9cb-4a80-89bf-72552f0e6d74)
+![April O'Neil](https://giWherecom/fp-crypto/ape-roll/assets/83050944/385dbc06-b9cb-4a80-89bf-72552f0e6d74)
 
 ape-roll is a planner for the operation-chaining/scripting language [weiroll](https://github.com/weiroll/weiroll).
 ape-roll is inspired by [weiroll.js](https://github.com/weiroll/weiroll.js).
 
-It provides an easy-to-use API for generating weiroll programs that can then be passed to any compatible implementation.
+It provides an easy-to-use API for generating weiroll programs that can be passed to any compatible implementation.
 
 ## Installation
 
@@ -18,7 +18,7 @@ where `0.0.2` is the latest version.
 ## Usage
 
 ### Wrapping contracts
-Weiroll programs consist of a sequence of calls to functions in external contracts. These calls can either be delegate calls to dedicated library contracts, or standard/static calls to external contracts. Before you can start creating a weiroll program, you will need to create interfaces for at least one contract you intend to use.
+Weiroll programs consist of a sequence of calls to functions in external contracts. These calls can be delegate calls to dedicated library contracts, or standard/static calls to external contracts. Before you can start creating a weiroll program, you must create interfaces for at least one contract you intend to use.
 
 The easiest way to do this is by wrapping ape contract instances:
 
@@ -31,7 +31,7 @@ contract = ape_roll.WeirollContract(
 
 This will produce a contract object that generates delegate calls to the ape contract in `WeirollContract`.
 
-To create delegate to an external contract, use `createLibrary`:
+To create a delegate to an external contract, use `createLibrary`:
 
 ```python
 ape_contract = ape.Contract(address)
@@ -41,7 +41,7 @@ contract = ape_roll.WeirollContract.createContract(ape_contract)
 contract = ape_roll.WeirollContract.createLibrary(ape_contract)
 ```
 
-You can repeat this for each contract you wish to use. A weiroll `WeirollContract` object can be reused across as many planner instances as you wish; there is no need to construct them again for each new program.
+You can just repeat this for each contract you'd like to use. A weiroll `WeirollContract` object can be reused across as many planner instances as you wish; there is no need to construct them again for each new program.
 
 ### Planning programs
 
@@ -71,7 +71,7 @@ For calls to external contracts, you can also pass a value in ether to send:
 planner.add(contract.func(a, b).withValue(c))
 ```
 
-`withValue` takes the same argument types as contract functions, so you can pass the return value of another function, or a literal value. You cannot combine `withValue` with delegate calls (eg, calls to a library created with `Contract.newLibrary`) or static calls.
+`withValue` takes the same argument types as contract functions so that you can pass the return value of another function or a literal value. You cannot combine `withValue` with delegate calls (eg, calls to a library created with `Contract.newLibrary`) or static calls.
 
 Likewise, if you want to make a particular call static, you can use `.staticcall()`:
 
@@ -92,9 +92,9 @@ commands, state = planner.plan()
 ```
 
 ### Subplans
-In some cases it may be useful to be able to instantiate nested instances of the weiroll VM - for example, when using flash loans, or other systems that function by making a callback to your code. The weiroll planner supports this via 'subplans'.
+In some cases, it may be useful to instantiate nested instances of the weiroll VM - for example, when using flash loans, or other systems that function by making a callback to your code. The weiroll planner supports this via 'subplans'.
 
-To make a subplan, construct the operations that should take place inside the nested instance normally, then pass the planner object to a contract function that executes the subplan, and pass that to the outer planner's `.addSubplan()` function instead of `.add()`.
+To make a subplan, construct the operations that should take place inside the nested instance usually, then pass the planner object to a contract function that executes the subplan, and pass that to the outer planner's `.addSubplan()` function instead of `.add()`.
 
 For example, suppose you want to call a nested instance to do some math:
 
@@ -109,9 +109,9 @@ planner.add(events.logUint(sum))
 commands, state = planner.plan()
 ```
 
-Subplan functions must specify which argument receives the current state using the special variable `Planner.state`, and must take exactly one subplanner and one state argument. Subplan functions must either return an updated state or nothing.
+Subplan functions must specify which argument receives the current state using the special variable `Planner.state` and take exactly one subplanner and one state argument. Subplan functions must either return an updated state or nothing.
 
-If a subplan returns updated state, return values created in a subplanner, such as `sum` above, can be referenced in the outer scope, and even in other subplans, as long as they are referenced after the command that produces them. Subplans that do not return updated state are read-only, and return values defined inside them cannot be referenced outside them.
+If a subplan returns an updated state, return values created in a subplanner, such as `sum` above, can be referenced in the outer scope, and even in other subplans, as long as they are referenced after the command that produces them. Subplans that do not return updated state are read-only, and return values defined inside them cannot be referenced outside them.
 
 ## More examples
 
