@@ -33,7 +33,7 @@ library CommandBuilder {
             mstore(0x40, add(ret, and(add(add(bytesWritten, 0x20), 0x1f), not(0x1f))))
             mstore(add(ret, 32), selector)
         }
-        uint256 count = 0;
+        uint256 count;
         bytes memory stateData; // Optionally encode the current state if the call requires it
         for (uint256 i; i < 32;) {
             idx = uint8(indices[i]);
