@@ -470,12 +470,12 @@ class WeirollPlanner:
 
         TODO: brownie has some logic for figuring out which overloaded method to use. we should use that here
         """
-        weirollContract = WeirollContract.createContract(ape_contract)
+        weiroll_contract = WeirollContract.createContract(ape_contract)
 
-        if func_name in contract.functionsByUniqueName:
-            func = contract.functionsByUniqueName[func_name]
-        elif func_name in contract.functionsBySignature:
-            func = contract.functionsBySignature[func_name]
+        if func_name in weiroll_contract.functionsByUniqueName:
+            func = weiroll_contract.functionsByUniqueName[func_name]
+        elif func_name in weiroll_contract.functionsBySignature:
+            func = weiroll_contract.functionsBySignature[func_name]
         else:
             raise ValueError(f"Unknown func_name ({func_name}) on {ape_contract}")
 
