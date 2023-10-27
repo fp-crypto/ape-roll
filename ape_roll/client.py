@@ -463,7 +463,15 @@ class WeirollPlanner:
 
         return self.call(token, "approve", spender, approve_wei)
 
-    def call(self, ape_contract: ApeContractInstance, func_name, *args, value=None, static=False, raw=False):
+    def call(
+        self,
+        ape_contract: ApeContractInstance,
+        func_name,
+        *args,
+        value=None,
+        static=False,
+        raw=False,
+    ):
         """func_name can be just the name, or it can be the full signature.
 
         If there are multiple functions with the same name, you must use the signature.
@@ -491,7 +499,7 @@ class WeirollPlanner:
 
         if raw:
             the_call = the_call.rawValue()
-        
+
         return self.add(the_call)
 
     def delegatecall(self, ape_contract: ApeContractInstance, func_name, *args):
