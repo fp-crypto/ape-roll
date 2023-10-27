@@ -181,7 +181,7 @@ class FunctionCall:
         flags: CommandFlags,
         fragment: FunctionFragment,
         args,
-        callvalue:LiteralValue|None=None,
+        callvalue: LiteralValue | None = None,
     ):
         self.contract = contract
         self.flags = flags
