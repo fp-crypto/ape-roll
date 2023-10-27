@@ -463,22 +463,44 @@ class WeirollPlanner:
 
         return self.call(token, "approve", spender, approve_wei)
 
-    def call(self, ape_contract: ApeContractInstance, func_name, *args):
+    def call(
+        self,
+        ape_contract: ApeContractInstance,
+        func_name,
+        *args,
+        value=None,
+        static=False,
+        raw=False,
+    ):
         """func_name can be just the name, or it can be the full signature.
 
         If there are multiple functions with the same name, you must use the signature.
 
         TODO: brownie has some logic for figuring out which overloaded method to use. we should use that here
         """
-        weirollContract = WeirollContract.createContract(ape_contract)
+        weiroll_contract = WeirollContract.createContract(ape_contract)
 
-        if func_name.endswith(")"):
-            # TODO: would be interesting to look at args and do this automatically
-            func = weirollContract.functionsBySignature[func_name]
+        if func_name in weiroll_contract.functionsByUniqueName:
+            func = weiroll_contract.functionsByUniqueName[func_name]
+        elif func_name in weiroll_contract.functionsBySignature:
+            func = weiroll_contract.functionsBySignature[func_name]
         else:
-            func = weirollContract.functionsByUniqueName[func_name]
+            raise ValueError(f"Unknown func_name ({func_name}) on {ape_contract}")
 
-        return self.add(func(*args))
+        the_call = func(*args)
+
+        if value:
+            if static:
+                raise ValueError("Cannot combine value and static")
+            the_call = the_call.withValue(value)
+
+        if static:
+            the_call = the_call.staticcall()
+
+        if raw:
+            the_call = the_call.rawValue()
+
+        return self.add(the_call)
 
     def delegatecall(self, ape_contract: ApeContractInstance, func_name, *args):
         contract = WeirollContract.createLibrary(ape_contract)

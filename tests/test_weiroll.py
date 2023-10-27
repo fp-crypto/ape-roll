@@ -351,6 +351,57 @@ def test_read_only_subplans_requirements(alice, math, readonlySubplanContract):
         planner.plan()
 
 
+def test_plan_call(alice, math):
+    planner = ape_roll.WeirollPlanner(alice)
+    planner.call(math.ape_contract, "add", 1, 2)
+    commands, state = planner.plan()
+
+    assert len(commands) == 1
+    assert commands[0] == ape_roll.hexConcat("0x771602f7010001ffffffffff", math.address)
+    assert state[0] == eth_abi.encode(["uint"], [1])
+    assert state[1] == eth_abi.encode(["uint"], [2])
+
+
+def test_plan_call_with_static(alice, math):
+    planner = ape_roll.WeirollPlanner(alice)
+    planner.call(math.ape_contract, "add", 1, 2, static=True)
+    commands, state = planner.plan()
+
+    assert len(commands) == 1
+    assert commands[0] == ape_roll.hexConcat("0x771602f7020001ffffffffff", math.address)
+    assert state[0] == eth_abi.encode(["uint"], [1])
+    assert state[1] == eth_abi.encode(["uint"], [2])
+
+
+@pytest.mark.xfail(reason="TODO: fix value")
+def test_plan_call_with_value(alice, math):
+    planner = ape_roll.WeirollPlanner(alice)
+    planner.call(math.ape_contract, "add", 1, 2, value=1)
+    commands, state = planner.plan()
+
+    assert len(commands) == 1
+    assert commands[0] == ape_roll.hexConcat("0x771602f7020001ffffffffff", math.address)
+    assert state[0] == eth_abi.encode(["uint"], [1])
+    assert state[1] == eth_abi.encode(["uint"], [2])
+
+
+def test_plan_call_with_static_and_value(alice, math):
+    planner = ape_roll.WeirollPlanner(alice)
+    with pytest.raises(ValueError, match="Cannot combine value and static"):
+        planner.call(math.ape_contract, "add", 1, 2, static=True, value=1)
+
+
+def test_plan_call_with_raw_value(alice, math):
+    planner = ape_roll.WeirollPlanner(alice)
+    planner.call(math.ape_contract, "add", 1, 2, raw=True)
+    commands, state = planner.plan()
+
+    assert len(commands) == 1
+    assert commands[0] == ape_roll.hexConcat("0x771602f7810001ffffffffff", math.address)
+    assert state[0] == eth_abi.encode(["uint"], [1])
+    assert state[1] == eth_abi.encode(["uint"], [2])
+
+
 @pytest.mark.xfail(reason="need to write this")
 def test_plan_with_loop(alice):
     target_calldata = (
