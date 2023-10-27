@@ -17,7 +17,7 @@ def test_weiroll_contract(math):
     assert result.fragment.name == "add"
     assert result.fragment.outputs == ["uint256"]
     assert result.fragment.signature == "0x771602f7"
-    assert result.callvalue == 0
+    assert result.callvalue == None
     assert result.flags == ape_roll.CommandFlags.DELEGATECALL
 
     args = result.args
@@ -347,7 +347,7 @@ def test_subplans_without_returns(alice, math, readonlySubplanContract):
     commands, _ = planner.plan()
 
     assert len(commands) == 1
-    commands[0] == ape_roll.hexConcat(
+    assert commands[0] == ape_roll.hexConcat(
         "0xde792d5f0082feffffffffff", readonlySubplanContract.address
     )
 
