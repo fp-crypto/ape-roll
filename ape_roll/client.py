@@ -181,7 +181,7 @@ class FunctionCall:
         flags: CommandFlags,
         fragment: FunctionFragment,
         args,
-        callvalue=0,
+        callvalue: LiteralValue | None = None,
     ):
         self.contract = contract
         self.flags = flags
@@ -203,7 +203,7 @@ class FunctionCall:
             (self.flags & ~CommandFlags.CALLTYPE_MASK) | CommandFlags.CALL_WITH_VALUE,
             self.fragment,
             self.args,
-            eth_abi.encode(["uint"], [value]),
+            LiteralValue("uint", eth_abi_encode_single("uint", value)),
         )
 
     def rawValue(self):

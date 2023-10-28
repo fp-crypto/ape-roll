@@ -17,7 +17,7 @@ def test_weiroll_contract(math):
     assert result.fragment.name == "add"
     assert result.fragment.outputs == ["uint256"]
     assert result.fragment.signature == "0x771602f7"
-    assert result.callvalue == 0
+    assert result.callvalue == None
     assert result.flags == ape_roll.CommandFlags.DELEGATECALL
 
     args = result.args
@@ -162,6 +162,20 @@ def test_weiroll_takes_dynamic_argument_from_a_return_value(alice, strings):
     assert len(state) == 2
     assert state[0] == eth_abi_encode_single("string", "Hello, ")
     assert state[1] == eth_abi_encode_single("string", "world!")
+
+
+def test_weiroll_add_call_with_value(alice, math):
+    planner = ape_roll.WeirollPlanner(alice)
+    math = ape_roll.WeirollContract.createContract(math.ape_contract)
+    planner.add(math.add(3, 4).withValue(1))
+
+    commands, state = planner.plan()
+
+    assert len(commands) == 1
+    assert len(state) == 3
+    assert state[0] == eth_abi_encode_single("uint", 1)
+    assert state[1] == eth_abi_encode_single("uint", 3)
+    assert state[2] == eth_abi_encode_single("uint", 4)
 
 
 def test_weiroll_argument_counts_match(math):
@@ -333,7 +347,7 @@ def test_subplans_without_returns(alice, math, readonlySubplanContract):
     commands, _ = planner.plan()
 
     assert len(commands) == 1
-    commands[0] == ape_roll.hexConcat(
+    assert commands[0] == ape_roll.hexConcat(
         "0xde792d5f0082feffffffffff", readonlySubplanContract.address
     )
 
@@ -373,16 +387,17 @@ def test_plan_call_with_static(alice, math):
     assert state[1] == eth_abi.encode(["uint"], [2])
 
 
-@pytest.mark.xfail(reason="TODO: fix value")
 def test_plan_call_with_value(alice, math):
     planner = ape_roll.WeirollPlanner(alice)
-    planner.call(math.ape_contract, "add", 1, 2, value=1)
+    planner.call(math.ape_contract, "add", 3, 4, value=1)
     commands, state = planner.plan()
 
     assert len(commands) == 1
-    assert commands[0] == ape_roll.hexConcat("0x771602f7020001ffffffffff", math.address)
+    assert commands[0] == ape_roll.hexConcat("0x771602f703000102ffffffff", math.address)
+    assert len(state) == 3
     assert state[0] == eth_abi.encode(["uint"], [1])
-    assert state[1] == eth_abi.encode(["uint"], [2])
+    assert state[1] == eth_abi.encode(["uint"], [3])
+    assert state[2] == eth_abi.encode(["uint"], [4])
 
 
 def test_plan_call_with_static_and_value(alice, math):
