@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ape-roll"
-version = "0.0.2"
+version = "0.0.3"
 description = "Build weiroll transactions with ape"
 authors = ["FP <fp@noemail.com>"]
 license = "MIT"
